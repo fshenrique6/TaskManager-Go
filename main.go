@@ -23,33 +23,75 @@ func main() {
 	}
 
 	switch command {
-	case "add":
-		if len(os.Args) < 3 {
-			fmt.Println("uso: todo add \"<título da tarefa>\"")
-			return
-		}
-		newTask := task.Task{
-			ID: nextID(tasks),
-			Title: os.Args[2],
-			Done: false,
-			CreatedAt: time.Now(),
-		}
-		tasks = append(tasks, newTask)
-		storage.Save(tasks)
-		fmt.Println("Tarefa adicionada:", newTask.Title)
-
-	
-	case "list":
-		for _, t := range tasks {
-			status := " "
-			if t.Done {
-				status = "x"
+		case "add":
+			if len(os.Args) < 3 {
+				fmt.Println("uso: todo add \"<título da tarefa>\"")
+				return
 			}
-			fmt.Printf("[%s] %d - %s\n", status, t.ID, t.Title)
-		}
+			newTask := task.Task{
+				ID: nextID(tasks),
+				Title: os.Args[2],
+				Done: false,
+				CreatedAt: time.Now(),
+			}
+			tasks = append(tasks, newTask)
+			storage.Save(tasks)
+			fmt.Println("Tarefa adicionada:", newTask.Title)
 
-	default:
-		fmt.Println("comando desconhecido", command)
+		
+		case "list":
+			for _, t := range tasks {
+				status := " "
+				if t.Done {
+					status = "x"
+				}
+				fmt.Printf("[%s] %d - %s\n", status, t.ID, t.Title)
+			}
+
+		case "done":
+			if len(os.Args) < 3 {
+				fmt.Println("uso: todo done <id da tarefa>")
+				return
+			}
+			id := os.Args[2]
+			found := false
+			for i, t := range tasks {
+				if fmt.Sprintf("%d", t.ID) == id {
+					tasks[i].Done = true
+					found = true
+					break
+				}
+			}
+			if !found {
+				fmt.Println("Tarefa não encontrada:", id)
+				return
+			}
+			storage.Save(tasks)
+			fmt.Println("Tarefa marcada como concluída:", id)
+
+		case "remove":
+			if len(os.Args) < 3 {
+				fmt.Println("uso: todo remove <id da tarefa>")
+				return
+			}
+			id := os.Args[2]
+			found := false
+			for i, t := range tasks {
+				if fmt.Sprintf("%d", t.ID) == id {
+					tasks = append(tasks[:i], tasks[i+1:]...)
+					found = true
+					break
+				}
+			}
+			if !found {
+				fmt.Println("Tarefa não encontrada:", id)
+				return
+			}
+			storage.Save(tasks)
+			fmt.Println("Tarefa removida:", id)
+
+		default:
+			fmt.Println("comando desconhecido", command)
 	}
 }
 
